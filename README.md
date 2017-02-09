@@ -1,13 +1,4 @@
 ### ZendQueue component
-
-Master: [![Build Status](https://secure.travis-ci.org/zendframework/ZendQueue.png?branch=master)](http://travis-ci.org/zendframework/ZendQueue)
-
-You can install using:
-
-```
-curl -s https://getcomposer.org/installer | php
-php composer.phar install
-```
-
-At that point, follow the instructions in the documentation folder for actual
-usage of the component. (Documentation is forthcoming.)
+This component is modified to my needs, so thread gently if u choose to use it.
+For one, I need only the ActiveMQ functionality and I am in the process of
+removing all the overhead involved with other systems here.
