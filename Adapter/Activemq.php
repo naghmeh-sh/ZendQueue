@@ -139,12 +139,19 @@ class Activemq extends AbstractAdapter
         $frame = $this->_client->createFrame();
         $frame->setCommand('ACK');
         $frame->setHeader('message-id', $message->handle);
-
         $this->_client->send($frame);
-
         return true;
     }
 
+    public function deleteThyMessage($handle)
+    {
+        $frame = $this->_client->createFrame();
+        $frame->setCommand('ACK');
+        $frame->setHeader('message-id', $handle);
+        $this->_client->send($frame);
+        return true;
+    }
+    
     /**
      * Get an array of all available queues
      *
@@ -210,26 +217,34 @@ class Activemq extends AbstractAdapter
         if(!$this->isSubscribed($queue)) {
             $this->subscribe($queue);
         }
-
         if ($maxMessages > 0) {
             if ($this->_client->canRead()) {
                 for ($i = 0; $i < $maxMessages; $i++) {
-                    $response = $this->_client->receive();
+		    try{
+                    	$response = $this->_client->receive();
 
-                    switch ($response->getCommand()) {
-                        case 'MESSAGE':
-                            $datum = array(
-                                'message_id' => $response->getHeader('message-id'),
-                                'handle'     => $response->getHeader('message-id'),
-                                'body'       => $response->getBody(),
-                                'md5'        => md5($response->getBody())
-                            );
-                            $data[] = $datum;
-                            break;
-                        default:
-                            $block = print_r($response, true);
-                            throw new Exception\UnexpectedValueException('Invalid response received: ' . $block);
-                    }
+                    	switch ($response->getCommand()) {
+                            case 'MESSAGE':
+                        	    $datum = array(
+                                	'message_id' => $response->getHeader('message-id'),
+                                	'handle'     => $response->getHeader('message-id'),
+                                	'body'       => $response->getBody(),
+                                	'md5'        => md5($response->getBody())
+                            	);
+                            	$data[] = $datum;
+                            	$this->deleteThyMessage($datum['handle']);
+                            	break;
+                       	    default:
+                            	$block = print_r($response, true);
+                            	throw new Exception\UnexpectedValueException('Invalid response received: ' . $block);
+                    	}
+		   }catch(\ZendQueue\Exception\ConnectionException $e){
+                       if(count($data)){
+                          break;
+                       } else {
+                          throw $e;
+                       }
+                  }//eof catch
                 }
             }
         }
