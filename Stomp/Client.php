@@ -20,9 +20,7 @@ namespace ZendQueue\Stomp;
 class Client
 {
     /**
-     * Array of $client \ZendQueue\Stomp\StompConnection
-     *
-     * @var array
+     * @var \ZendQueue\Stomp\Connection
      */
     protected $_connection;
 
@@ -101,7 +99,7 @@ class Client
     /**
      * Get client connection
      *
-     * @return \ZendQueue\Stomp\StompConnection|null
+     * @return \ZendQueue\Stomp\Connection|null
      */
     public function getConnection()
     {

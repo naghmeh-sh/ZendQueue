@@ -129,10 +129,10 @@ class Connection implements StompConnection
      *
      * example: $response = $client->write($frame)->read();
      *
-     * @param \ZendQueue\Stom\StompFrame $frame
-     * @return $this
+     * @param \ZendQueue\Stomp\Frame $frame
+     * @return \ZendQueue\Stomp\Connection
      */
-    public function write(StompFrame $frame)
+    public function write(Frame $frame)
     {
         $this->ping();
         $output = $frame->toFrame();

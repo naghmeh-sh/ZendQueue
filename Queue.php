@@ -228,7 +228,7 @@ class Queue implements Countable
     /**
      * Get the adapter for this queue
      *
-     * @return \ZendQueue\Adapter
+     * @return \ZendQueue\Adapter\Activemq
      */
     public function getAdapter()
     {
@@ -399,31 +399,14 @@ class Queue implements Countable
     /**
      * Return the first element in the queue
      *
+     * @param  \Closure $frame_handler function to handle the received frames the signature is (string $body)
      * @param  integer $maxMessages
      * @param  integer $timeout
      * @return \ZendQueue\Message\MessageIterator
      */
-    public function receive($maxMessages=null, $timeout=null)
+    public function receive(\Closure $frame_handler,$maxMessages=1, $timeout=20)
     {
-        if (($maxMessages !== null) && !is_integer($maxMessages)) {
-            throw new Exception\InvalidArgumentException('$maxMessages must be an integer or null');
-        }
-
-        if (($timeout !== null) && !is_integer($timeout)) {
-            throw new Exception\InvalidArgumentException('$timeout must be an integer or null');
-        }
-
-        // Default to returning only one message
-        if ($maxMessages === null) {
-            $maxMessages = 1;
-        }
-
-        // Default to standard timeout
-        if ($timeout === null) {
-            $timeout = $this->getOption(self::TIMEOUT);
-        }
-
-        return $this->getAdapter()->receive($maxMessages, $timeout);
+        return $this->getAdapter()->receive($frame_handler,$maxMessages, $timeout);
     }
 
     /**

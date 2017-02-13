@@ -316,7 +316,7 @@ class Frame implements StompFrame
             return array();
         }
 
-        if (!preg_match_all("|([\w-]+):\s*(.+)\n|", $parts[0], $m, PREG_SET_ORDER)) {
+        if (!preg_match_all("|([\\w-]+):\s*(.+)\n|", $parts[0], $m, PREG_SET_ORDER)) {
             return array();
         }
 

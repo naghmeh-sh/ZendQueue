@@ -59,12 +59,7 @@ class Activemq extends AbstractAdapter
             $options['port'] = self::DEFAULT_PORT;
         }
 
-        if (array_key_exists('stompClient', $options)) {
-            $this->_client = $options['stompClient'];
-        } else {
-            $this->_client = new Client($options['scheme'], $options['host'], $options['port']);
-        }
-
+        $this->_client = new Client($options['scheme'], $options['host'], $options['port']);
         $connect = $this->_client->createFrame();
 
         // Username and password are optional on some messaging servers
@@ -193,69 +188,55 @@ class Activemq extends AbstractAdapter
     /**
      * Return the first element in the queue
      *
+     * @param  \Closure   $frame_handler
      * @param  integer    $maxMessages
      * @param  integer    $timeout
-     * @param  \ZendQueue\Queue $queue
-     * @return \ZendQueue\Message\MessageIterator
+     * @return array of raw messages
      */
-    public function receive($maxMessages=null, $timeout=null, Queue $queue=null)
+    public function receive(\Closure $frame_handler,$maxMessages=null, $timeout=null)
     {
         if ($maxMessages === null) {
-            $maxMessages = 1;
+            $maxMessages = 100;
         }
         if ($timeout === null) {
             $timeout = self::RECEIVE_TIMEOUT_DEFAULT;
         }
-        if ($queue === null) {
-            $queue = $this->_queue;
-        }
 
         // read
-        $data = array();
+        $data = [];
 
         // signal that we are reading
-        if(!$this->isSubscribed($queue)) {
-            $this->subscribe($queue);
+        if(!$this->isSubscribed($this->_queue)) {
+            $this->subscribe($this->_queue);
         }
         if ($maxMessages > 0) {
             if ($this->_client->canRead()) {
                 for ($i = 0; $i < $maxMessages; $i++) {
-		    try{
+		          try{
                     	$response = $this->_client->receive();
-
                     	switch ($response->getCommand()) {
                             case 'MESSAGE':
                         	    $datum = array(
                                 	'message_id' => $response->getHeader('message-id'),
                                 	'handle'     => $response->getHeader('message-id'),
-                                	'body'       => $response->getBody(),
-                                	'md5'        => md5($response->getBody())
+                                	'body'       => $response->getBody()
                             	);
+                        	    dbgr('FRAME RECEIVED',$datum);
                             	$data[] = $datum;
+                            	$frame_handler($response->getBody());
                             	$this->deleteThyMessage($datum['handle']);
                             	break;
                        	    default:
                             	$block = print_r($response, true);
                             	throw new Exception\UnexpectedValueException('Invalid response received: ' . $block);
                     	}
-		   }catch(\ZendQueue\Exception\ConnectionException $e){
-                       if(count($data)){
-                          break;
-                       } else {
-                          throw $e;
-                       }
+		          }catch(\ZendQueue\Exception\ConnectionException $e){
+                       break;
                   }//eof catch
                 }
             }
         }
-
-        $options = array(
-            'queue'        => $queue,
-            'data'         => $data,
-            'messageClass' => $queue->getMessageClass(),
-        );
-        $classname = $queue->getMessageSetClass();
-        return new $classname($options);
+        return $data;
     }
 
     /**
