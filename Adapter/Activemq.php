@@ -221,16 +221,17 @@ class Activemq extends AbstractAdapter
                                 	'handle'     => $response->getHeader('message-id'),
                                 	'body'       => $response->getBody()
                             	);
-                        	    dbgr('FRAME RECEIVED',$datum);
+                        	    if(function_exists('dbgr')) dbgr('FRAME RECEIVED',$datum);
                             	$data[] = $datum;
                             	$frame_handler($response->getBody());
                             	$this->deleteThyMessage($datum['handle']);
                             	break;
                        	    default:
                             	$block = print_r($response, true);
-                            	throw new Exception\UnexpectedValueException('Invalid response received: ' . $block);
+                            	throw new Exception\UnexpectedValueException('Invalid response received: ' . $block,$i);
                     	}
 		          }catch(\ZendQueue\Exception\ConnectionException $e){
+		               //nothing new comes into the socket. Obviously, this does not behave like a daemon
                        break;
                   }//eof catch
                 }
